@@ -7,28 +7,34 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import at.fhv.sysarch.lab5.homeautomation.devices.AirCondition;
-import at.fhv.sysarch.lab5.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab5.homeautomation.devices.*;
+import at.fhv.sysarch.lab5.homeautomation.environmentSimulators.TemperatureEnvironmentSimulator;
 
-import java.util.Optional;
 import java.util.Scanner;
 
 public class UI extends AbstractBehavior<Void> {
 
-    private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
-    private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureEnvironmentSimulator;
+    private ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer;
+    private ActorRef<Fridge.FridgeCommand> fridge;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition));
+    public static Behavior<Void> create(ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> tempEnvironmentSimulator,
+                                        ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer,
+                                        ActorRef<Fridge.FridgeCommand> fridge) {
+        return Behaviors.setup(context -> new UI(context, tempEnvironmentSimulator, mediaPlayer, fridge));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+    private  UI(ActorContext<Void> context,
+                ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureEnvironmentSimulator,
+                ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer,
+                ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
-        //consider guardians and hierarchies. Who should create and communicate with which actor?
-        this.airCondition = airCondition;
-        this.tempSensor = tempSensor;
+        this.temperatureEnvironmentSimulator = temperatureEnvironmentSimulator;
+        this.mediaPlayer = mediaPlayer;
+        this.fridge = fridge;
+
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -55,12 +61,11 @@ public class UI extends AbstractBehavior<Void> {
             reader = scanner.nextLine();
             // TODO: change input handling
             String[] command = reader.split(" ");
-            if(command[0].equals("t")) {
-                this.tempSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(Double.valueOf(command[1]))));
+            if(command[0].equals("temp")) { //fire and forget
+                //TODO: update temperature or mode of temperature changing???
+                //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
             }
-            if(command[0].equals("a")) {
-                this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
-            }
+
             // TODO: process Input
         }
         getContext().getLog().info("UI done");

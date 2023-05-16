@@ -7,28 +7,43 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import at.fhv.sysarch.lab5.homeautomation.devices.AirCondition;
-import at.fhv.sysarch.lab5.homeautomation.environments.EnvironmentSimulator;
-import at.fhv.sysarch.lab5.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab5.homeautomation.devices.*;
+import at.fhv.sysarch.lab5.homeautomation.environmentSimulators.TemperatureEnvironmentSimulator;
+import at.fhv.sysarch.lab5.homeautomation.environmentSimulators.WeatherEnvironmentSimulator;
+import at.fhv.sysarch.lab5.homeautomation.shared.Temperature;
+import at.fhv.sysarch.lab5.homeautomation.shared.WeatherType;
 import at.fhv.sysarch.lab5.homeautomation.ui.UI;
 
 public class HomeAutomationController extends AbstractBehavior<Void>{
-    private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
-    private  ActorRef<AirCondition.AirConditionCommand> airCondition;
 
-    public static Behavior<Void> create() {
-        return Behaviors.setup(HomeAutomationController::new);
+
+    public static Behavior<Void> create(WeatherType weatherType, Temperature temperature, boolean isMoviePlaying, boolean areBlindsClosed) {
+        return Behaviors.setup(context -> new HomeAutomationController(context, weatherType, temperature, isMoviePlaying, areBlindsClosed));
     }
 
-    private  HomeAutomationController(ActorContext<Void> context) {
+    private  HomeAutomationController(ActorContext<Void> context,
+                                      WeatherType startWeatherType,
+                                      Temperature startTemperature,
+                                      boolean isMoviePlaying,
+                                      boolean areBlindsClosed) {
         super(context);
-        // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
-        this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
-        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
-        getContext().spawn(EnvironmentSimulator.create(), "Environment");
+
+        //devices
+        ActorRef<AirCondition.AirConditionCommand> airCondition = getContext().spawn(AirCondition.create(), "AirCondition");
+        ActorRef<Blinds.BlindsCommand> blinds = getContext().spawn(Blinds.create(areBlindsClosed), "Blinds");
+        ActorRef<Fridge.FridgeCommand> fridge = getContext().spawn(Fridge.create(), "Fridge");
+        ActorRef<MediaPlayer.MediaPlayerCommand>  mediaPlayer = getContext().spawn(MediaPlayer.create(blinds, isMoviePlaying), "MediaPlayer");
+
+        //sensors and environment Simulators
+        ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> tempEnvironmentSimulator = getContext().spawn(TemperatureEnvironmentSimulator.create(startTemperature), "tempEnvironmentSimulator"); //passed sensor because of notify on temperature change
+        ActorRef<TemperatureSensor.TemperatureCommand> tempSensor = getContext().spawn(TemperatureSensor.create(tempEnvironmentSimulator, airCondition), "temperatureSensor");
+
+        ActorRef<WeatherEnvironmentSimulator.WeatherEnvironmentCommand> weatherEnvironmentSimulator = getContext().spawn(WeatherEnvironmentSimulator.create(startWeatherType), "weatherEnvironmentSimulator");
+        ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor = getContext().spawn(WeatherSensor.create(weatherEnvironmentSimulator, blinds), "weatherSensor");
 
         //UI
-        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition), "UI");
+        ActorRef<Void> ui = getContext().spawn(UI.create(tempEnvironmentSimulator, mediaPlayer, fridge), "UI");
+
         getContext().getLog().info("HomeAutomation Application started");
     }
 

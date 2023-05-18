@@ -64,12 +64,14 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
     }
 
     private Behavior<WeatherSensorCommand> receiveWeatherResponse(RecieveWeatherResponse response) {
-        getContext().getLog().info("WeatherSensor reading weather: {} ", response.currentWeather);
-        currentWeather = response.currentWeather;
-        if(currentWeather == WeatherType.SUNNY) {
-            blinds.tell(new Blinds.WeatherChangedCommand(true));
-        } else {
-            blinds.tell(new Blinds.WeatherChangedCommand(false));
+        //getContext().getLog().info("WeatherSensor reading weather: {} ", response.currentWeather);
+        if (currentWeather != currentWeather) {
+            currentWeather = response.currentWeather;
+            if (currentWeather == WeatherType.SUNNY) {
+                blinds.tell(new Blinds.WeatherChangedCommand(true));
+            } else {
+                blinds.tell(new Blinds.WeatherChangedCommand(false));
+            }
         }
         return this;
     }

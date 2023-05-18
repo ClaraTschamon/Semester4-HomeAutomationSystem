@@ -1,5 +1,6 @@
 package at.fhv.sysarch.lab5.homeautomation.devices;
 
+import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -11,11 +12,10 @@ public class MediaPlayer extends AbstractBehavior<MediaPlayer.MediaPlayerCommand
 
     public interface MediaPlayerCommand {}
 
-    public static boolean turnedOn;
-    public static final class PowerMediaPlayer implements MediaPlayerCommand {
-        boolean turnedOn;
-        public PowerMediaPlayer(boolean turnedOn) {
-            this.turnedOn = turnedOn;
+    public static final class PowerMediaPlayerCommand implements MediaPlayerCommand {
+        boolean playMovie;
+        public PowerMediaPlayerCommand(boolean playMovie) {
+            this.playMovie = playMovie;
         }
     }
 
@@ -23,8 +23,8 @@ public class MediaPlayer extends AbstractBehavior<MediaPlayer.MediaPlayerCommand
         return Behaviors.setup(context -> new MediaPlayer(context, blinds, isMoviePlaying));
     }
 
-    private ActorRef<Blinds.BlindsCommand> blinds;
-    private boolean moviePlaying;
+    private final ActorRef<Blinds.BlindsCommand> blinds;
+    private boolean moviePlaying; //TODO: reicht das oder müssen movies abgespielt werden mit bestimmter dauer welche dann automatisch stoppen?
 
     public MediaPlayer(ActorContext<MediaPlayerCommand> context,
                        ActorRef<Blinds.BlindsCommand> blinds,
@@ -36,6 +36,31 @@ public class MediaPlayer extends AbstractBehavior<MediaPlayer.MediaPlayerCommand
 
     @Override
     public Receive<MediaPlayerCommand> createReceive() {
-        return null;
+        return newReceiveBuilder()
+                .onMessage(PowerMediaPlayerCommand.class, this::onPowerMediaPlayer)
+                .onSignal(PostStop.class, signal -> onPostStop())
+                .build();
+    }
+
+    private Behavior<MediaPlayerCommand> onPowerMediaPlayer(PowerMediaPlayerCommand command) {
+        if (command.playMovie && !moviePlaying) {
+            moviePlaying = true;
+            getContext().getLog().info("Movie started");
+            blinds.tell(new Blinds.MediaPlayerStatusChangedCommand(true));
+        } else if(!command.playMovie && moviePlaying) {
+            moviePlaying = false;
+            getContext().getLog().info("Movie stopped");
+            blinds.tell(new Blinds.MediaPlayerStatusChangedCommand(false));
+        } else if(command.playMovie && moviePlaying) {
+            getContext().getLog().info("Movie already playing");
+        } else {
+            getContext().getLog().info("Movie was not playing stopped");
+        }
+        return this;
+    }
+
+    private Behavior<MediaPlayerCommand> onPostStop() {
+        getContext().getLog().info("MediaPlayer stopped");
+        return this;
     }
 }

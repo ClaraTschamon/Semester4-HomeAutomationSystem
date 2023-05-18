@@ -58,7 +58,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     }
 
     private Behavior<TemperatureCommand> onReceiveTemperature(RecieveNewTemperature readTemperature) {
-        getContext().getLog().info("TemperatureSensor measured {} {}", readTemperature.currentTemperature.getValue(), readTemperature.currentTemperature.getUnit());
+        //getContext().getLog().info("TemperatureSensor measured {} {}", readTemperature.currentTemperature.getValue(), readTemperature.currentTemperature.getUnit());
         airCondition.tell(new AirCondition.ChangedTemperature(readTemperature.currentTemperature));
         return this;
     }

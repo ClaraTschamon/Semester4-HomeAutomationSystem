@@ -46,7 +46,7 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     }
 
     private Behavior<BlindsCommand> onMediaPlayerStatusChanged(MediaPlayerStatusChangedCommand mediaPlayerStatusChangedCommand) {
-        if (mediaPlayerStatusChangedCommand.isMoviePlaying) {
+        if (mediaPlayerStatusChangedCommand.isMoviePlaying && !closed) {
             closed = true;
             getContext().getLog().info("Blinds closed");
         } else {
@@ -57,7 +57,7 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     }
 
     private Behavior<BlindsCommand> onWeatherChanged(WeatherChangedCommand weatherChangedCommand) {
-        if (weatherChangedCommand.isSunny) { //nur wenn sie nicht schon geschlossen sind
+        if (weatherChangedCommand.isSunny && !closed) { //nur wenn sie nicht schon geschlossen sind
             closed = true;
             getContext().getLog().info("Blinds closed");
         } else {

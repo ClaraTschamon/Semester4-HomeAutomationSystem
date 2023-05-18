@@ -33,8 +33,7 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
 
     //attributes of Environment
     private WeatherType currentWeather;
-    private final TimerScheduler<WeatherEnvironmentCommand> weatherTimeScheduler;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public static Behavior<WeatherEnvironmentSimulator.WeatherEnvironmentCommand> create(WeatherType startWeather){
         return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new WeatherEnvironmentSimulator(context, timers, startWeather)));
@@ -44,10 +43,9 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
                                         TimerScheduler<WeatherEnvironmentCommand> weatherTimeScheduler,
                                         WeatherType startWeather) {
         super(context);
-        this.weatherTimeScheduler = weatherTimeScheduler;
         this.currentWeather = startWeather;
         //start periodical change of weather
-        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(3)); //alle 3 sekunden wird das wetter geändert
+        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(5)); //alle 3 sekunden wird das wetter geändert
     }
 
     @Override

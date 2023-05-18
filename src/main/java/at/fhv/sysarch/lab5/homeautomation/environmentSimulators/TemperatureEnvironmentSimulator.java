@@ -18,10 +18,18 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
     public interface TemperatureEnvironmentCommand {}
 
     public static final class TemperatureChangeCommand implements TemperatureEnvironmentCommand {
-        Temperature temperatureChange;
+        double temperatureDouble;
+        String unit;
+        Temperature temperature;
 
-        public TemperatureChangeCommand(Temperature temperatureChange) {
-            this.temperatureChange = temperatureChange;
+        public TemperatureChangeCommand(double temperature, String unit) { //for commandline
+            this.temperatureDouble = temperature;
+            this.unit = unit;
+            this.temperature = new Temperature(unit, temperature);
+        }
+
+        public TemperatureChangeCommand(Temperature temperature) { //for timer
+            this.temperature = temperature;
         }
     }
 
@@ -35,8 +43,7 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
 
     //attributes of environment
     private Temperature currentTemperature;
-    private final TimerScheduler<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureTimeScheduler;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public static Behavior<TemperatureEnvironmentCommand> create(Temperature startTemp) {
         return Behaviors.setup(context -> Behaviors.withTimers(timers -> new TemperatureEnvironmentSimulator(context, timers, startTemp)));
@@ -48,8 +55,7 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
              Temperature startTemp) {
         super(context);
         this.currentTemperature = startTemp;
-        this.temperatureTimeScheduler = temperatureTimer;
-        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChangeCommand(currentTemperature), Duration.ofSeconds(3)); //alle 3 sekunden wird die temperatur geändert
+        temperatureTimer.startTimerAtFixedRate(new TemperatureChangeCommand(currentTemperature), Duration.ofSeconds(5)); //alle 3 sekunden wird die temperatur geändert
     }
 
     @Override
@@ -72,7 +78,7 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
         DecimalFormat decimalFormat = new DecimalFormat("#.#", symbols);
 
         newTemperatureValue = Double.parseDouble(decimalFormat.format(newTemperatureValue));
-        currentTemperature = new Temperature(t.temperatureChange.getUnit(), newTemperatureValue);
+        currentTemperature = new Temperature(t.temperature.getUnit(), newTemperatureValue);
 
         getContext().getLog().info("TemperatureEnvironmentSimulator changed Temperature: {} {}", currentTemperature.getValue(), currentTemperature.getUnit());
         return this;

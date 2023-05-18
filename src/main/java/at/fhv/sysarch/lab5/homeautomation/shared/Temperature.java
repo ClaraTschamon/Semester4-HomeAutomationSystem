@@ -1,5 +1,7 @@
 package at.fhv.sysarch.lab5.homeautomation.shared;
 
+import java.util.Locale;
+
 public class Temperature {
 
     public enum Unit {
@@ -25,6 +27,24 @@ public class Temperature {
         this.unit = unit;
         this.value = value;
     }
+
+    public Temperature(String unit, double value) {
+        this.unit = parseUnit(unit);
+        this.value = value;
+    }
+
+    private Unit parseUnit(String unitString) {
+        String lowercaseUnit = unitString.toLowerCase(Locale.ENGLISH);
+
+        for (Unit unit : Unit.values()) {
+            if (unit.getUnit().toLowerCase(Locale.ENGLISH).equals(lowercaseUnit)) {
+                return unit;
+            }
+        }
+
+        throw new IllegalArgumentException("Invalid temperature unit: " + unitString);
+    }
+
 
     public double getValue() {
         return value;

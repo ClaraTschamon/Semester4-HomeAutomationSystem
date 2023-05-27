@@ -61,9 +61,9 @@ public class UI extends AbstractBehavior<Void> {
             reader = scanner.nextLine();
             String[] command = reader.split(" ");
             if(command[0].equals("t")) {          //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
-                temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.ManualTemperatureChangeCommand(Double.parseDouble(command[1]), command[2]));
+                temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.ManualTemperatureChangeCommand(Double.parseDouble(command[1]), "celsius"));
             }
-            if(command[0].equals("a")) { //steht nicht in angabe. habe ich aber beibehalten... //TODO!
+            if(command[0].equals("a")) { //TODO!
                 if(command[1].equals("power")) {
                     this.airCondition.tell(new AirCondition.PowerAirConditionCommand());
                 }

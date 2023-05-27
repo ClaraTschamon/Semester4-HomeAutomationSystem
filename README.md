@@ -1,7 +1,8 @@
 ### How to interact with the system:
 
 ##### Set the temperature:
-- t [temperature as double] [unit either celsius, fahrenheit or kelvin] </br>
+- t [temperature as double] </br>
+-> unit: celsius... the unit is hardcoded in the UI but could be changed. If unit is changed, the threshold value activating and deactivating aircondition at 20°C has to be changed
 
 <i>Example: t 19.5 celsius</i>
 

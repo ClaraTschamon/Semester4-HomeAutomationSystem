@@ -30,7 +30,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
         //devices
         ActorRef<AirCondition.AirConditionCommand> airCondition = getContext().spawn(AirCondition.create(), "AirCondition");
-        ActorRef<Blinds.BlindsCommand> blinds = getContext().spawn(Blinds.create(areBlindsClosed), "Blinds");
+        ActorRef<Blinds.BlindsCommand> blinds = getContext().spawn(Blinds.create(areBlindsClosed, isMoviePlaying), "Blinds");
         ActorRef<Fridge.FridgeCommand> fridge = getContext().spawn(Fridge.create(), "Fridge");
         ActorRef<MediaPlayer.MediaPlayerCommand>  mediaPlayer = getContext().spawn(MediaPlayer.create(blinds, isMoviePlaying), "MediaPlayer");
 

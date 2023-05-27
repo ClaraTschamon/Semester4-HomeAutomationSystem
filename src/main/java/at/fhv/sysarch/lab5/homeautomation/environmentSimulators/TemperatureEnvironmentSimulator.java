@@ -17,26 +17,31 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
 
     public interface TemperatureEnvironmentCommand {}
 
-    public static final class TemperatureChangeCommand implements TemperatureEnvironmentCommand {
-        double temperatureDouble;
-        String unit;
+    public static final class AutomaticTemperatureChangeCommand implements TemperatureEnvironmentCommand {
         Temperature temperature;
 
-        public TemperatureChangeCommand(double temperature, String unit) { //for commandline
-            this.temperatureDouble = temperature;
-            this.unit = unit;
-            this.temperature = new Temperature(unit, temperature);
-        }
-
-        public TemperatureChangeCommand(Temperature temperature) { //for timer
+        public AutomaticTemperatureChangeCommand(Temperature temperature) { //for timer
             this.temperature = temperature;
         }
     }
 
-    public static final class TemperatureRequest implements TemperatureEnvironmentCommand {
+    public static final class ManualTemperatureChangeCommand implements TemperatureEnvironmentCommand {
+        double temperatureDouble;
+        String unit;
+        Temperature temperature;
+
+        public ManualTemperatureChangeCommand(double temperature, String unit) {
+            this.temperatureDouble = temperature;
+            this.unit = unit;
+            this.temperature = new Temperature(unit, temperature);
+        }
+    }
+
+
+    public static final class TemperatureRequestCommand implements TemperatureEnvironmentCommand {
         ActorRef<TemperatureSensor.TemperatureCommand> sender;
 
-        public TemperatureRequest(ActorRef<TemperatureSensor.TemperatureCommand> sensor) {
+        public TemperatureRequestCommand(ActorRef<TemperatureSensor.TemperatureCommand> sensor) {
             this.sender = sensor;
         }
     }
@@ -55,20 +60,27 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
              Temperature startTemp) {
         super(context);
         this.currentTemperature = startTemp;
-        temperatureTimer.startTimerAtFixedRate(new TemperatureChangeCommand(currentTemperature), Duration.ofSeconds(60)); //alle 3 sekunden wird die temperatur geändert
+        temperatureTimer.startTimerAtFixedRate(new AutomaticTemperatureChangeCommand(currentTemperature), Duration.ofSeconds(8)); //alle 3 sekunden wird die temperatur geändert
     }
 
     @Override
     public Receive<TemperatureEnvironmentCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(TemperatureChangeCommand.class, this::onTemperatureChange)
-                .onMessage(TemperatureRequest.class, this::sendTemperature)
+                .onMessage(AutomaticTemperatureChangeCommand.class, this::onAutomaticTemperatureChange)
+                .onMessage(ManualTemperatureChangeCommand.class, this::onManualTemperatureChange)
+                .onMessage(TemperatureRequestCommand.class, this::sendTemperature)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
+    private Behavior<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> onManualTemperatureChange(ManualTemperatureChangeCommand t) {
+        currentTemperature = t.temperature;
+        getContext().getLog().info("Temperature was manually changed: {} {}", currentTemperature.getValue(), currentTemperature.getUnit());
+        return this;
+    }
 
-    private Behavior<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> onTemperatureChange(TemperatureChangeCommand t) {
+
+    private Behavior<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> onAutomaticTemperatureChange(AutomaticTemperatureChangeCommand t) {
         double temperatureChange = getRandomTemperatureChange();
         double newTemperatureValue = currentTemperature.getValue() + temperatureChange;
 
@@ -89,8 +101,8 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
         return Math.round(randomChange * 10.0) / 10.0; // Limit to one decimal place
     }
 
-    private Behavior<TemperatureEnvironmentCommand> sendTemperature(TemperatureRequest t) {
-        t.sender.tell(new TemperatureSensor.RecieveNewTemperature(currentTemperature));
+    private Behavior<TemperatureEnvironmentCommand> sendTemperature(TemperatureRequestCommand t) {
+        t.sender.tell(new TemperatureSensor.RecieveTemperatureCommand(currentTemperature));
         return this;
     }
 

@@ -14,14 +14,14 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
 
     public interface TemperatureCommand {}
 
-    public static final class RecieveNewTemperature implements TemperatureCommand { //requests temperature from environment
+    public static final class RecieveTemperatureCommand implements TemperatureCommand { //requests temperature from environment
         Temperature currentTemperature;
-        public RecieveNewTemperature(Temperature currentTemperature) {
+        public RecieveTemperatureCommand(Temperature currentTemperature) {
             this.currentTemperature = currentTemperature;
         }
     }
 
-    public static final class ScheduleTemperatureRequest implements TemperatureCommand {}
+    public static final class ScheduleTemperatureRequestCommand implements TemperatureCommand {}
 
     public static Behavior<TemperatureCommand> create(ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureEnvironmentSimulator,
                                                       ActorRef<AirCondition.AirConditionCommand> airCondition) {
@@ -38,7 +38,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
         super(context);
         this.temperatureEnvironmentSimulator = temperatureEnvironmentSimulator;
         this.airCondition = airCondition;
-        timer.startTimerAtFixedRate(new ScheduleTemperatureRequest(), Duration.ofSeconds(1)); //jede sekunde wird nachgefragt (die Temperatur gemessen)
+        timer.startTimerAtFixedRate(new ScheduleTemperatureRequestCommand(), Duration.ofSeconds(1)); //jede sekunde wird nachgefragt (die Temperatur gemessen)
 
         getContext().getLog().info("TemperatureSensor started");
     }
@@ -46,20 +46,20 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     @Override
     public Receive<TemperatureCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(ScheduleTemperatureRequest.class, this::requestTemperature)
-                .onMessage(RecieveNewTemperature.class, this::onReceiveTemperature)
+                .onMessage(ScheduleTemperatureRequestCommand.class, this::requestTemperature)
+                .onMessage(RecieveTemperatureCommand.class, this::onReceiveTemperature)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
-    private Behavior<TemperatureCommand> requestTemperature(ScheduleTemperatureRequest scheduleTemperatureRequest) {
-        temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.TemperatureRequest(getContext().getSelf()));
+    private Behavior<TemperatureCommand> requestTemperature(ScheduleTemperatureRequestCommand scheduleTemperatureRequest) {
+        temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.TemperatureRequestCommand(getContext().getSelf()));
         return this;
     }
 
-    private Behavior<TemperatureCommand> onReceiveTemperature(RecieveNewTemperature readTemperature) {
+    private Behavior<TemperatureCommand> onReceiveTemperature(RecieveTemperatureCommand readTemperature) {
         //getContext().getLog().info("TemperatureSensor measured {} {}", readTemperature.currentTemperature.getValue(), readTemperature.currentTemperature.getUnit());
-        airCondition.tell(new AirCondition.ChangedTemperature(readTemperature.currentTemperature));
+        airCondition.tell(new AirCondition.ChangedTemperatureCommand(readTemperature.currentTemperature));
         return this;
     }
 

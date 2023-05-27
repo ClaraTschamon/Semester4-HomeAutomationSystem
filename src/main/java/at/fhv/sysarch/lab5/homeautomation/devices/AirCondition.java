@@ -8,33 +8,16 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab5.homeautomation.shared.Temperature;
 
-/**
- * This class shows ONE way to switch behaviors in object-oriented style. Another approach is the use of static
- * methods for each behavior.
- *
- * The switching of behaviors is not strictly necessary for this example, but is rather used for demonstration
- * purpose only.
- *
- * For an example with functional-style please refer to: {@link https://doc.akka.io/docs/akka/current/typed/style-guide.html#functional-versus-object-oriented-style}
- *
- */
-import java.util.Optional;
-
 public class AirCondition extends AbstractBehavior<AirCondition.AirConditionCommand> {
-    public interface AirConditionCommand {}
-
-    public static final class PowerAirCondition implements AirConditionCommand {
-        final Optional<Boolean> value;
-
-        public PowerAirCondition(Optional<Boolean> value) {
-            this.value = value;
-        }
+    public interface AirConditionCommand {
     }
 
-    public static final class ChangedTemperature implements AirConditionCommand {
+    public static final class PowerAirConditionCommand implements AirConditionCommand { }
+
+    public static final class ChangedTemperatureCommand implements AirConditionCommand {
         Temperature temperature;
 
-        public ChangedTemperature(Temperature temperature) {
+        public ChangedTemperatureCommand(Temperature temperature) {
             this.temperature = temperature;
         }
     }
@@ -54,13 +37,13 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     @Override
     public Receive<AirConditionCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(ChangedTemperature.class, this::onReadTemperature)
-                .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
+                .onMessage(ChangedTemperatureCommand.class, this::onReadTemperature)
+                .onMessage(PowerAirConditionCommand.class, this::onPowerAirConditionOff)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
-    private Behavior<AirConditionCommand> onReadTemperature(ChangedTemperature r) {
+    private Behavior<AirConditionCommand> onReadTemperature(ChangedTemperatureCommand r) {
         //getContext().getLog().info("Aircondition reading {} {}", r.temperature.getValue(), r.temperature.getUnit());
 
         if (r.temperature.getValue() >= 20 && !active) { //only activate if not already active
@@ -76,41 +59,40 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
         return Behaviors.same();
     }
 
-    private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirCondition r) {
+    private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirConditionCommand r) {
         getContext().getLog().info("In: -------------------------------------onPowerAirConditionOff");
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
+        getContext().getLog().info("Turning AirCondition to OFF");
 
-        if(!r.value.get()) {
-            return this.powerOff();
-        }
-        return this;
-    }
-
-
-    private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
-        getContext().getLog().info("In: -------------------------------------onPowerAirConditionOn");
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
-
-        if(r.value.get()) {
-            return Behaviors.receive(AirConditionCommand.class)
-                    .onMessage(ChangedTemperature.class, this::onReadTemperature)
-                    .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
-                    .onSignal(PostStop.class, signal -> onPostStop())
-                    .build();
-        }
-        return this;
-    }
-
-    private Behavior<AirConditionCommand> powerOff() {
         this.poweredOn = false;
         return Behaviors.receive(AirConditionCommand.class)
-                .onMessage(PowerAirCondition.class, this::onPowerAirConditionOn)
+                .onMessage(PowerAirConditionCommand.class, this::onPowerAirConditionOn)
+                .onMessage(ChangedTemperatureCommand.class, this::onIgnoreMessage)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+
+    }
+
+
+    private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirConditionCommand r) { //TODO: Behavior wird nicht gewechselt... wie kann man es wechseln?
+        getContext().getLog().info("In: -------------------------------------onPowerAirConditionOn");
+        getContext().getLog().info("Turning AirCondition to ON");
+
+        this.poweredOn = true;
+        return Behaviors.receive(AirConditionCommand.class)
+                .onMessage(ChangedTemperatureCommand.class, this::onReadTemperature)
+                .onMessage(PowerAirConditionCommand.class, this::onPowerAirConditionOff)
+                .onSignal(PostStop.class, signal -> onPostStop())
+                .build();
+
     }
 
     private AirCondition onPostStop() {
         getContext().getLog().info("TemperatureSensor actor stopped");
+        return this;
+    }
+
+    private Behavior<AirConditionCommand> onIgnoreMessage(ChangedTemperatureCommand r) {
+        //ignore messages when power is off. otherwise i get the info in the console that the message was unhandled
         return this;
     }
 }

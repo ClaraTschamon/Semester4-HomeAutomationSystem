@@ -23,10 +23,10 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
         }
     }
 
-    public static final class WeatherRequest implements WeatherEnvironmentCommand {
+    public static final class WeatherRequestCommand implements WeatherEnvironmentCommand {
         ActorRef<WeatherSensor.WeatherSensorCommand> sensor;
 
-        public WeatherRequest(ActorRef<WeatherSensor.WeatherSensorCommand> sender) {
+        public WeatherRequestCommand(ActorRef<WeatherSensor.WeatherSensorCommand> sender) {
             this.sensor = sender;
         }
     }
@@ -45,14 +45,14 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
         super(context);
         this.currentWeather = startWeather;
         //start periodical change of weather
-        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(60)); //alle 3 sekunden wird das wetter geändert
+        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(8)); //alle x sekunden wird das wetter geändert
     }
 
     @Override
     public Receive<WeatherEnvironmentCommand> createReceive() {
         return newReceiveBuilder()
                 .onMessage(WeatherChangeCommand.class, this::doWeatherChange)
-                .onMessage(WeatherRequest.class, this::sendWeather)
+                .onMessage(WeatherRequestCommand.class, this::sendWeather)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
@@ -70,8 +70,8 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
         return weatherTypes[randomIndex];
     }
 
-    private Behavior<WeatherEnvironmentCommand> sendWeather(WeatherRequest r) {
-        r.sensor.tell(new WeatherSensor.RecieveWeatherResponse(currentWeather));
+    private Behavior<WeatherEnvironmentCommand> sendWeather(WeatherRequestCommand r) {
+        r.sensor.tell(new WeatherSensor.RecieveWeatherCommand(currentWeather));
         return this;
     }
 

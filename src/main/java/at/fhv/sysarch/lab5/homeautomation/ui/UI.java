@@ -10,7 +10,6 @@ import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab5.homeautomation.devices.*;
 import at.fhv.sysarch.lab5.homeautomation.environmentSimulators.TemperatureEnvironmentSimulator;
 
-import java.util.Optional;
 import java.util.Scanner;
 
 public class UI extends AbstractBehavior<Void> {
@@ -61,11 +60,13 @@ public class UI extends AbstractBehavior<Void> {
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
             String[] command = reader.split(" ");
-            if(command[0].equals("t")) { //fire and forget                //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
-                temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.TemperatureChangeCommand(Double.parseDouble(command[1]), command[2]));
+            if(command[0].equals("t")) {          //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
+                temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.ManualTemperatureChangeCommand(Double.parseDouble(command[1]), command[2]));
             }
-            if(command[0].equals("a")) { //steht nicht in angabe. habe ich aber beibehalten...
-                this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[0]))));
+            if(command[0].equals("a")) { //steht nicht in angabe. habe ich aber beibehalten... //TODO!
+                if(command[1].equals("power")) {
+                    this.airCondition.tell(new AirCondition.PowerAirConditionCommand());
+                }
             }
             if(command[0].equals("f")) {
                 if(command[1].equals("display")) {

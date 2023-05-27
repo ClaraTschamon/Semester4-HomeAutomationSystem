@@ -25,14 +25,17 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
         }
     }
 
-    public static Behavior<BlindsCommand> create(boolean closed) {
-        return Behaviors.setup(context -> new Blinds(context, closed));
+    public static Behavior<BlindsCommand> create(boolean closed, boolean movieIsPlaying) {
+        return Behaviors.setup(context -> new Blinds(context, closed, movieIsPlaying));
     }
 
     private boolean closed;
+    private boolean movieIsPlaying;
+    private boolean isSunny;
 
-    public Blinds(ActorContext<BlindsCommand> context, boolean closed) {
+    public Blinds(ActorContext<BlindsCommand> context, boolean closed, boolean movieIsPlaying) {
         super(context);
+        this.movieIsPlaying = movieIsPlaying;
         this.closed = closed;
     }
 
@@ -46,11 +49,13 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     }
 
     private Behavior<BlindsCommand> onMediaPlayerStatusChanged(MediaPlayerStatusChangedCommand mediaPlayerStatusChangedCommand) {
-        if (mediaPlayerStatusChangedCommand.isMoviePlaying && !closed) {
+        if (mediaPlayerStatusChangedCommand.isMoviePlaying && !closed) { //wenn sie eingeschaltet wird
             closed = true;
+            movieIsPlaying = true;
             getContext().getLog().info("Blinds closed");
-        } else {
+        } else if(!mediaPlayerStatusChangedCommand.isMoviePlaying && !isSunny){ //wenn sie ausgeschaltet wird und wetter schlecht ist
             closed = false;
+            movieIsPlaying = false;
             getContext().getLog().info("Blinds opened");
         }
         return this;
@@ -59,9 +64,11 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     private Behavior<BlindsCommand> onWeatherChanged(WeatherChangedCommand weatherChangedCommand) {
         if (weatherChangedCommand.isSunny && !closed) { //nur wenn sie nicht schon geschlossen sind
             closed = true;
+            isSunny = true;
             getContext().getLog().info("Blinds closed");
-        } else {
+        } else if(!weatherChangedCommand.isSunny && closed && !movieIsPlaying) { //nur wenn sie nicht schon offen sind
             closed = false;
+            isSunny = false;
             getContext().getLog().info("Blinds opened");
         }
         return this;

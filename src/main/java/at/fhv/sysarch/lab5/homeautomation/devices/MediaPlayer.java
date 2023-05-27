@@ -24,7 +24,7 @@ public class MediaPlayer extends AbstractBehavior<MediaPlayer.MediaPlayerCommand
     }
 
     private final ActorRef<Blinds.BlindsCommand> blinds;
-    private boolean moviePlaying; //TODO: reicht das oder müssen movies abgespielt werden mit bestimmter dauer welche dann automatisch stoppen?
+    private boolean moviePlaying;
 
     public MediaPlayer(ActorContext<MediaPlayerCommand> context,
                        ActorRef<Blinds.BlindsCommand> blinds,
@@ -53,8 +53,8 @@ public class MediaPlayer extends AbstractBehavior<MediaPlayer.MediaPlayerCommand
             blinds.tell(new Blinds.MediaPlayerStatusChangedCommand(false));
         } else if(command.playMovie && moviePlaying) {
             getContext().getLog().info("Movie already playing");
-        } else {
-            getContext().getLog().info("Movie was not playing stopped");
+        } else if(!command.playMovie && !moviePlaying) {
+            getContext().getLog().info("Movie already stopped");
         }
         return this;
     }

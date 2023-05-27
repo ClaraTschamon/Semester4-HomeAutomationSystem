@@ -46,7 +46,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     }
 
     public static final class ShowHistoryCommand implements FridgeCommand {
-
     }
 
     public static Behavior<FridgeCommand> create() { //siehe HomeAutomationController

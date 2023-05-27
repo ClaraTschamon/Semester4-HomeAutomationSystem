@@ -14,16 +14,16 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
     public interface WeatherSensorCommand {
     }
 
-    public static final class RecieveWeatherResponse implements WeatherSensorCommand {
+    public static final class RecieveWeatherCommand implements WeatherSensorCommand {
         WeatherType currentWeather;
 
-        public RecieveWeatherResponse(WeatherType currentWeather) {
+        public RecieveWeatherCommand(WeatherType currentWeather) {
             this.currentWeather = currentWeather;
         }
     }
 
     //polling
-    public static final class ScheduleWeatherRequest implements WeatherSensorCommand {
+    public static final class ScheduleWeatherRequestCommand implements WeatherSensorCommand {
     }
 
     public static Behavior<WeatherSensorCommand> create(ActorRef<WeatherEnvironmentSimulator.WeatherEnvironmentCommand> weatherEnvironmentSimulator,
@@ -46,26 +46,26 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
         super(context);
         this.weatherEnvironmentSimulator = weatherEnvironmentSimulator;
         this.blinds = blinds;
-        timer.startTimerAtFixedRate(new ScheduleWeatherRequest(), Duration.ofSeconds(1)); //jede sekunde wird nachgefragt (das Wetter gemessen)
+        timer.startTimerAtFixedRate(new ScheduleWeatherRequestCommand(), Duration.ofSeconds(1)); //jede sekunde wird nachgefragt (das Wetter gemessen)
     }
 
     @Override
     public Receive<WeatherSensorCommand> createReceive() { //methode legt basisverhalten von aktor fest. was passiert wenn nachrichten empfangen werden
         return newReceiveBuilder()
-                .onMessage(ScheduleWeatherRequest.class, this::requestWeather)
-                .onMessage(RecieveWeatherResponse.class, this::receiveWeatherResponse)
+                .onMessage(ScheduleWeatherRequestCommand.class, this::requestWeather)
+                .onMessage(RecieveWeatherCommand.class, this::receiveWeatherResponse)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
-    private Behavior<WeatherSensorCommand> requestWeather(ScheduleWeatherRequest scheduled) {
-        weatherEnvironmentSimulator.tell(new WeatherEnvironmentSimulator.WeatherRequest(getContext().getSelf()));
+    private Behavior<WeatherSensorCommand> requestWeather(ScheduleWeatherRequestCommand scheduled) {
+        weatherEnvironmentSimulator.tell(new WeatherEnvironmentSimulator.WeatherRequestCommand(getContext().getSelf()));
         return this;
     }
 
-    private Behavior<WeatherSensorCommand> receiveWeatherResponse(RecieveWeatherResponse response) {
+    private Behavior<WeatherSensorCommand> receiveWeatherResponse(RecieveWeatherCommand response) {
         //getContext().getLog().info("WeatherSensor reading weather: {} ", response.currentWeather);
-        if (currentWeather != currentWeather) {
+        if (currentWeather != response.currentWeather) {
             currentWeather = response.currentWeather;
             if (currentWeather == WeatherType.SUNNY) {
                 blinds.tell(new Blinds.WeatherChangedCommand(true));

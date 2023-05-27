@@ -40,7 +40,7 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     public static Behavior<AirConditionCommand> create() {
-        return Behaviors.setup(context -> new AirCondition(context));
+        return Behaviors.setup(AirCondition::new);
     }
 
     private boolean active = false;
@@ -80,19 +80,18 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
         getContext().getLog().info("In: -------------------------------------onPowerAirConditionOff");
         getContext().getLog().info("Turning Aircondition to {}", r.value);
 
-        if(r.value.get() == false) {
+        if(!r.value.get()) {
             return this.powerOff();
         }
         return this;
     }
 
-    //TODO: Frage: wie schalte ich die Aircondition in der Kommandozeile wieder ein? funktioniert nicht! es wird immer onPowerAirConditionOff aufgerufen
 
     private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
         getContext().getLog().info("In: -------------------------------------onPowerAirConditionOn");
         getContext().getLog().info("Turning Aircondition to {}", r.value);
 
-        if(r.value.get() == true) {
+        if(r.value.get()) {
             return Behaviors.receive(AirConditionCommand.class)
                     .onMessage(ChangedTemperature.class, this::onReadTemperature)
                     .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
@@ -111,7 +110,7 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     private AirCondition onPostStop() {
-        getContext().getLog().info("TemperatureSensor actor {}-{} stopped");
+        getContext().getLog().info("TemperatureSensor actor stopped");
         return this;
     }
 }

@@ -38,7 +38,7 @@ public class UI extends AbstractBehavior<Void> {
         this.mediaPlayer = mediaPlayer;
         this.fridge = fridge;
 
-        new Thread(() -> { this.runCommandLine(); }).start();
+        new Thread(this::runCommandLine).start();
 
         getContext().getLog().info("UI started");
     }
@@ -54,7 +54,6 @@ public class UI extends AbstractBehavior<Void> {
     }
 
     public void runCommandLine() {
-        // TODO: Create Actor for UI Input-Handling?
         Scanner scanner = new Scanner(System.in);
         String reader = "";
 
@@ -62,8 +61,7 @@ public class UI extends AbstractBehavior<Void> {
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
             String[] command = reader.split(" ");
-            if(command[0].equals("t")) { //fire and forget
-                //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
+            if(command[0].equals("t")) { //fire and forget                //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
                 temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.TemperatureChangeCommand(Double.parseDouble(command[1]), command[2]));
             }
             if(command[0].equals("a")) { //steht nicht in angabe. habe ich aber beibehalten...
@@ -77,7 +75,7 @@ public class UI extends AbstractBehavior<Void> {
                 } else if(command[1].equals("consume")){
                     this.fridge.tell(new Fridge.ConsumeProductCommand(command[2]));
                 } else if(command[1].equals("order")){
-                    this.fridge.tell(new Fridge.PerformOrderCommand(command[2]));
+                    this.fridge.tell(new Fridge.RequestOrderCommand(command[2]));
                 }
             }
             if(command[0].equals("m")) {

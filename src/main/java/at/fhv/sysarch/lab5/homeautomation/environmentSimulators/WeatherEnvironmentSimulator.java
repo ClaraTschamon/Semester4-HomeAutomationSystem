@@ -45,7 +45,7 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
         super(context);
         this.currentWeather = startWeather;
         //start periodical change of weather
-        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(5)); //alle 3 sekunden wird das wetter geändert
+        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(60)); //alle 3 sekunden wird das wetter geändert
     }
 
     @Override

@@ -55,7 +55,7 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
              Temperature startTemp) {
         super(context);
         this.currentTemperature = startTemp;
-        temperatureTimer.startTimerAtFixedRate(new TemperatureChangeCommand(currentTemperature), Duration.ofSeconds(5)); //alle 3 sekunden wird die temperatur geändert
+        temperatureTimer.startTimerAtFixedRate(new TemperatureChangeCommand(currentTemperature), Duration.ofSeconds(60)); //alle 3 sekunden wird die temperatur geändert
     }
 
     @Override

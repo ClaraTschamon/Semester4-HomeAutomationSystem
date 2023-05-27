@@ -7,21 +7,15 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-import java.util.concurrent.CompletableFuture;
-
 public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.FridgeWeightCommand> {
 
     public interface FridgeWeightCommand {}
 
     public static final class RequestWeightCommand implements FridgeWeightCommand {
-        ActorRef<Fridge.FridgeCommand> fridge;
-        int weight;
-        CompletableFuture<Boolean> weightAvailable = new CompletableFuture<>();
+        ActorRef<OrderProcessor.ProcessOrderCommand> orderProcessor;
 
-        public RequestWeightCommand(ActorRef<Fridge.FridgeCommand> fridge, int weight, CompletableFuture<Boolean> weightAvailable) {
-            this.fridge = fridge;
-            this.weight = weight;
-            this.weightAvailable = weightAvailable;
+        public RequestWeightCommand(ActorRef<OrderProcessor.ProcessOrderCommand> orderProcessor) {
+            this.orderProcessor = orderProcessor;
         }
     }
 
@@ -41,7 +35,7 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Frid
         }
     }
 
-    private final int maxWeight = 20;
+    private final int maxWeight = 25;
     private int occupiedWeight = 0;
 
 
@@ -50,7 +44,7 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Frid
     }
 
     public static Behavior<FridgeWeightCommand> create() {
-        return Behaviors.setup(FridgeWeightSensor::new); //needs constructor
+        return Behaviors.setup(FridgeWeightSensor::new);
     }
 
     @Override
@@ -63,15 +57,13 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Frid
     }
 
     private Behavior<FridgeWeightCommand> onRequestAvailableWeight(RequestWeightCommand command) {
-        boolean weightAvailable = maxWeight - occupiedWeight >= command.weight;
-        getContext().getLog().info("Fridge weight requested. Product fits: " + weightAvailable);
-        command.weightAvailable.complete(weightAvailable);
+        command.orderProcessor.tell(new OrderProcessor.WeightResultCommand(maxWeight - occupiedWeight));
         return this;
     }
 
     private Behavior<FridgeWeightCommand> onIncreaseWeight(IncreaseWeightCommand command) {
         occupiedWeight += command.weight;
-        getContext().getLog().info("Fridge weight increased by " + command.weight + " to " + occupiedWeight + ". Available weight: " + (maxWeight - occupiedWeight) + ".");
+        getContext().getLog().info("Fridge weight increased by " + command.weight + " to " + occupiedWeight + "/" + maxWeight + ".");
         return this;
     }
 

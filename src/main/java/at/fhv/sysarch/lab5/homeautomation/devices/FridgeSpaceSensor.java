@@ -8,20 +8,16 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-import java.util.concurrent.CompletableFuture;
-
 public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.FridgeSpaceCommand> {
 
 
     public interface FridgeSpaceCommand{}
 
     public static final class RequestSpaceCommand implements FridgeSpaceCommand { //gets request from Fridge
-        final ActorRef<Fridge.FridgeCommand> fridge; //holds a reference to the fridge... on request sends if space for product is available
-        CompletableFuture<Boolean> spaceAvailable;
+        final ActorRef<OrderProcessor.ProcessOrderCommand> orderProcessor; //holds a reference to the fridge... on request sends if space for product is available
 
-        public RequestSpaceCommand(ActorRef<Fridge.FridgeCommand> fridge, CompletableFuture<Boolean> spaceAvailability) {
-            this.fridge = fridge;
-            this.spaceAvailable = spaceAvailability;
+        public RequestSpaceCommand(ActorRef<OrderProcessor.ProcessOrderCommand> orderProcessor) {
+            this.orderProcessor = orderProcessor;
         }
     }
 
@@ -31,7 +27,7 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Fridge
     public static final class FreeSpaceCommand implements FridgeSpaceCommand { //gets request from Fridge
     }
 
-    private final int maxSpace = 6;
+    private final int maxSpace = 12;
     private int occupiedSpace = 0;
 
     public FridgeSpaceSensor(ActorContext<FridgeSpaceCommand> context) {
@@ -54,9 +50,7 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Fridge
     }
 
     private Behavior<FridgeSpaceCommand> onRequestAvailableSpace(RequestSpaceCommand command) {
-        boolean spaceAvailable = occupiedSpace + 1 <= maxSpace;
-        getContext().getLog().info("Fridge space requested. Product fits: {}", spaceAvailable);
-        command.spaceAvailable.complete(spaceAvailable); // Complete the CompletableFuture with the result
+        command.orderProcessor.tell(new OrderProcessor.SpaceResultCommand(maxSpace - occupiedSpace));
         return this;
     }
 

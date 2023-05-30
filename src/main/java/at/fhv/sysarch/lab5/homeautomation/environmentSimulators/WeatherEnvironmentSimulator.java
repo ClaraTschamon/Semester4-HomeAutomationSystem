@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.environmentSimulators;
 
 import akka.actor.typed.ActorRef;
@@ -45,7 +46,7 @@ public class WeatherEnvironmentSimulator extends AbstractBehavior<WeatherEnviron
         super(context);
         this.currentWeather = startWeather;
         //start periodical change of weather
-        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(8)); //alle x sekunden wird das wetter geändert
+        weatherTimeScheduler.startTimerWithFixedDelay(new WeatherChangeCommand(currentWeather), Duration.ofSeconds(5)); //alle x sekunden wird das wetter geändert
     }
 
     @Override

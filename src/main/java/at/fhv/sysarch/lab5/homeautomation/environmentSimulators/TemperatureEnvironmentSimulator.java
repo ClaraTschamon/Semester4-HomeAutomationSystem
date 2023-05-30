@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.environmentSimulators;
 
 import akka.actor.typed.ActorRef;
@@ -60,7 +61,7 @@ public class TemperatureEnvironmentSimulator extends AbstractBehavior<Temperatur
              Temperature startTemp) {
         super(context);
         this.currentTemperature = startTemp;
-        temperatureTimer.startTimerAtFixedRate(new AutomaticTemperatureChangeCommand(currentTemperature), Duration.ofSeconds(8)); //alle 3 sekunden wird die temperatur geändert
+        temperatureTimer.startTimerAtFixedRate(new AutomaticTemperatureChangeCommand(currentTemperature), Duration.ofSeconds(5)); //alle 3 sekunden wird die temperatur geändert
     }
 
     @Override

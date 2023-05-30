@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.ui;
 
 import akka.actor.typed.ActorRef;
@@ -7,7 +8,9 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import at.fhv.sysarch.lab5.homeautomation.devices.*;
+import at.fhv.sysarch.lab5.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab5.homeautomation.devices.Fridge;
+import at.fhv.sysarch.lab5.homeautomation.devices.MediaPlayer;
 import at.fhv.sysarch.lab5.homeautomation.environmentSimulators.TemperatureEnvironmentSimulator;
 
 import java.util.Scanner;
@@ -23,14 +26,14 @@ public class UI extends AbstractBehavior<Void> {
                                         ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> tempEnvironmentSimulator,
                                         ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer,
                                         ActorRef<Fridge.FridgeCommand> fridge) {
-        return Behaviors.setup(context -> new UI(context, airCondition ,tempEnvironmentSimulator, mediaPlayer, fridge));
+        return Behaviors.setup(context -> new UI(context, airCondition, tempEnvironmentSimulator, mediaPlayer, fridge));
     }
 
-    private  UI(ActorContext<Void> context,
-                ActorRef<AirCondition.AirConditionCommand> airCondition,
-                ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureEnvironmentSimulator,
-                ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer,
-                ActorRef<Fridge.FridgeCommand> fridge) {
+    private UI(ActorContext<Void> context,
+               ActorRef<AirCondition.AirConditionCommand> airCondition,
+               ActorRef<TemperatureEnvironmentSimulator.TemperatureEnvironmentCommand> temperatureEnvironmentSimulator,
+               ActorRef<MediaPlayer.MediaPlayerCommand> mediaPlayer,
+               ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         this.airCondition = airCondition;
         this.temperatureEnvironmentSimulator = temperatureEnvironmentSimulator;
@@ -60,30 +63,28 @@ public class UI extends AbstractBehavior<Void> {
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
             String[] command = reader.split(" ");
-            if(command[0].equals("t")) {          //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
+            if (command[0].equals("t")) {          //--> geht an den TemperatureEnvironmentSimulator. Dieser benachrichtigt den Sensor und dieser wiederum die Klimaanlage
                 temperatureEnvironmentSimulator.tell(new TemperatureEnvironmentSimulator.ManualTemperatureChangeCommand(Double.parseDouble(command[1]), "celsius"));
             }
-            if(command[0].equals("a")) { //TODO!
-                if(command[1].equals("power")) {
-                    this.airCondition.tell(new AirCondition.PowerAirConditionCommand());
-                }
+            if (command[0].equals("a") && (command[1].equals("power"))) {
+                this.airCondition.tell(new AirCondition.PowerAirConditionCommand());
             }
-            if(command[0].equals("f")) {
-                if(command[1].equals("display")) {
+            if (command[0].equals("f")) {
+                if (command[1].equals("display")) {
                     this.fridge.tell(new Fridge.DisplayProductsCommand());
-                } else if(command[1].equals("history")){
+                } else if (command[1].equals("history")) {
                     this.fridge.tell(new Fridge.ShowHistoryCommand());
-                } else if(command[1].equals("consume")){
+                } else if (command[1].equals("consume")) {
                     this.fridge.tell(new Fridge.ConsumeProductCommand(command[2]));
-                } else if(command[1].equals("order")){
+                } else if (command[1].equals("order")) {
                     this.fridge.tell(new Fridge.RequestOrderCommand(command[2]));
                 }
             }
-            if(command[0].equals("m")) {
-                if(command[1].equals("play")){
+            if (command[0].equals("m")) {
+                if (command[1].equals("play")) {
                     this.mediaPlayer.tell(new MediaPlayer.PowerMediaPlayerCommand(true));
                 }
-                if(command[1].equals("stop")){
+                if (command[1].equals("stop")) {
                     this.mediaPlayer.tell(new MediaPlayer.PowerMediaPlayerCommand(false));
                 }
             }

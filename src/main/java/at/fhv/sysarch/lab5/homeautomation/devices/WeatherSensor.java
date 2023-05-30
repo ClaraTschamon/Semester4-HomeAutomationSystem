@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.devices;
 
 import akka.actor.typed.ActorRef;
@@ -80,5 +81,4 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
         getContext().getLog().info("WeatherSensor stopped");
         return this;
     }
-
 }

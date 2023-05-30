@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.devices;
 
 import akka.actor.typed.ActorRef;
@@ -9,7 +10,6 @@ import at.fhv.sysarch.lab5.homeautomation.shared.Temperature;
 
 import java.time.Duration;
 
-//<TemperatureSensor.TemperatureCommmand> weil das TemperatureCommand interface in der Klasse TemperatureSensor ist.
 public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.TemperatureCommand> {
 
     public interface TemperatureCommand {}

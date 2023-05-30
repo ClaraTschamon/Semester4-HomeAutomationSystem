@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.devices;
 
 import akka.actor.typed.ActorRef;
@@ -63,13 +64,13 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Frid
 
     private Behavior<FridgeWeightCommand> onIncreaseWeight(IncreaseWeightCommand command) {
         occupiedWeight += command.weight;
-        getContext().getLog().info("Fridge weight increased by " + command.weight + " to " + occupiedWeight + "/" + maxWeight + ".");
+        getContext().getLog().info("Fridge weight increased by {} to {}/{}.",command.weight, occupiedWeight, maxWeight);
         return this;
     }
 
     private Behavior<FridgeWeightCommand> onDecreaseWeight(DecreaseWeightCommand command) {
         occupiedWeight -= command.weight;
-        getContext().getLog().info("Fridge weight decreased by " + command.weight + " to " + occupiedWeight + ". Available weight: " + (maxWeight - occupiedWeight) + ".");
+        getContext().getLog().info("Fridge weight decreased by {} to {}. Available weight: {}", command.weight, occupiedWeight, (maxWeight - occupiedWeight));
         return this;
     }
 }

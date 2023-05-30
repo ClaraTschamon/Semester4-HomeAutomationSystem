@@ -1,3 +1,4 @@
+//Clara Tschamon
 package at.fhv.sysarch.lab5.homeautomation.devices;
 
 import akka.actor.typed.PostStop;

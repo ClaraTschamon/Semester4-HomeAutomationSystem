@@ -1,3 +1,9 @@
+### Aufgabenstellung:  
+-> siehe Aufgabenstellung .pdf
+
+### Details zur Umsetzung:  
+-> siehe DokuClaraTschamon.pdf
+
 ### How to interact with the system:
 
 ##### Set the temperature:
